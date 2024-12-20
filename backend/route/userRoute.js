@@ -2,19 +2,13 @@ const express = require('express');
 const router = express.Router();
 const rsvpController = require('../controller/userController');
 
-
+//create rsvp
 router.post('/rsvp', rsvpController.createRsvp);
 
-//used fro egt all rsvps
-router.get('/rsvps', rsvpController.getAllRsvps);
-
-// used for get rsvp with particular id
+//get throug id
 router.get('/rsvps/:id', rsvpController.getRsvpById);
 
-//used for update rsvp detal through id
-router.put('/rsvps/:id', rsvpController.updateRsvp);
-
-// usde to delete rsvp
-router.delete('/rsvps/:id', rsvpController.deleteRsvp);
+//login
+router.post('/login', rsvpController.login);
 
 module.exports = router;
