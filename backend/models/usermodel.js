@@ -13,9 +13,6 @@ const RsvpSchema = new mongoose.Schema({
     trim: true,
     lowercase: true,
   },
-  password:{
-    type:String,
-  },
   preference: {
     type: String,
     enum: ['vegetarian', 'non-vegetarian'],
