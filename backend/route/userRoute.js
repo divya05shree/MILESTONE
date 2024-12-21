@@ -11,4 +11,13 @@ router.get('/rsvps/:id', rsvpController.getRsvpById);
 //login
 router.post('/login', rsvpController.login);
 
+// Logout
+router.post('/logout', rsvpController.logout);
+
+// Update RSVP
+router.put('/rsvps/:id', rsvpController.updateRsvp);
+
+// Delete RSVP
+router.delete('/rsvps/:id', rsvpController.deleteRsvp);
+
 module.exports = router;
