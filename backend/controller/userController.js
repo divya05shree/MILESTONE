@@ -81,6 +81,13 @@ exports.login = async (req, res) => {
       { expiresIn: '1h' }
     );
 
+    // Set the JWT token in a cookie
+    res.setHeader('Set-Cookie', cookie.serialize('authToken', token, {
+      httpOnly: true,      
+      maxAge: 3600,       
+      path: '/',            
+    }));
+
     res.status(200).json({
       success: true,
       message: 'Login successful',
@@ -96,5 +103,129 @@ exports.login = async (req, res) => {
       success: false,
       message: 'Server error.',
     });
+  }
+};
+
+
+exports.logout = (req, res) => {
+  // Clear the authToken cookie by setting its expiration time to a past date
+  res.setHeader('Set-Cookie', cookie.serialize('authToken', '', {
+    httpOnly: true,
+    maxAge: 0,   
+    path: '/',   
+  }));
+
+  res.status(200).json({
+    success: true,
+    message: 'Logout successful. Token removed from cookies.',
+  });
+};
+
+// Update RSVP
+exports.updateRsvp = async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    // Find the RSVP entry associated with the logged-in organizer
+    const rsvp = await RSVP.findById(req.params.id);
+    if (!rsvp) {
+      return res.status(404).json({ success: false, message: 'RSVP not found' });
+    }
+
+    // Update only if the logged-in organizer created it
+    if (rsvp.email !== decoded.email) {
+      return res.status(403).json({ success: false, message: 'Permission denied' });
+    }
+
+    // Restrict updates to name and preference fields
+    const { name, preference } = req.body;
+
+    if (name) rsvp.name = name;
+    if (preference) {
+      if (!['vegetarian', 'non-vegetarian'].includes(preference)) {
+        return res.status(400).json({ success: false, message: 'Invalid preference value' });
+      }
+      rsvp.preference = preference;
+    }
+
+    await rsvp.save();
+
+    res.status(200).json({ success: true, message: 'RSVP updated successfully', data: rsvp });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+
+// Delete RSVP
+exports.deleteRsvp = async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    // Find the RSVP entry associated with the logged-in organizer
+    const rsvp = await RSVP.findById(req.params.id);
+    if (!rsvp) {
+      return res.status(404).json({ success: false, message: 'RSVP not found' });
+    }
+
+    // Delete only if the logged-in organizer created it
+    if (rsvp.email !== decoded.email) {
+      return res.status(403).json({ success: false, message: 'Permission denied' });
+    }
+
+    await rsvp.remove();
+
+    res.status(200).json({ success: true, message: 'RSVP deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+
+// Delete any RSVP (only for organizers)
+exports.deleteRsvp = async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    // Find the RSVP entry of the logged-in user
+    const user = await RSVP.findOne({ email: decoded.email });
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    // Check if the user is an organizer
+    if (user.priority !== 'organizers') {
+      return res.status(403).json({ success: false, message: 'Permission denied. Only organizers can delete RSVPs.' });
+    }
+
+    // Find and delete the specified RSVP
+    const rsvpToDelete = await RSVP.findById(req.params.id);
+    if (!rsvpToDelete) {
+      return res.status(404).json({ success: false, message: 'RSVP not found' });
+    }
+
+    await rsvpToDelete.remove();
+
+    res.status(200).json({
+      success: true,
+      message: 'RSVP deleted successfully',
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
   }
 };
