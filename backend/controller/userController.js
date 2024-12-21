@@ -1,5 +1,7 @@
 const RSVP = require('../models/usermodel');
 const jwt = require('jsonwebtoken');  // Import JWT
+const cookie = require('cookie');
+
 
 // Create a new RSVP
 exports.createRsvp = async (req, res) => {
