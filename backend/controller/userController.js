@@ -39,7 +39,7 @@ exports.login = async (req, res) => {
   try {
     // Find user by email (organizer)
     let user = await RSVP.findOne({ email });
-
+  
     // If the user is not found, ask them to provide RSVP details
     if (!user) {
       // If no user exists, register the user with provided details
@@ -77,8 +77,8 @@ exports.login = async (req, res) => {
     // If login is successful, generate a JWT token and return user details
     const token = jwt.sign(
       { id: user._id, email: user.email },
-      process.env.JWT_SECRET,
-      { expiresIn: '1h' }
+      "MynameisPuvith",
+      
     );
 
     res.status(200).json({
@@ -94,7 +94,7 @@ exports.login = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: 'Server error.',
+      message: "server error",
     });
   }
 };

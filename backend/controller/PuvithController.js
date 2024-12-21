@@ -61,3 +61,36 @@ exports.getRSVPStats = async (req, res) => {
 };
 
 
+exports.getAll = async (req , res) =>{
+  try {
+    const rsvp = await RSVP.find()
+    res.status(200).json(rsvp)
+    } catch (error) {
+      res.status(500).json({ message: 'Error fetching RSVPs', error });
+      } 
+
+}
+///Using tree concepts
+
+class PriorityNode {
+  constructor(name) {
+    this.name = name;
+    this.children = [];
+    this.rsvps = [];
+  }
+
+  addRSVP(rsvp) {
+    this.rsvps.push(rsvp);
+  }
+
+  addChild(node) {
+    this.children.push(node);
+  }
+  getRSVPs() {
+    let allRSVPs = [...this.rsvps];
+    for (const child of this.children) {
+      allRSVPs = allRSVPs.concat(child.getRSVPs());
+    }
+    return allRSVPs;
+  }
+}
