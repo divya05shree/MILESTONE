@@ -28,7 +28,7 @@ exports.getRsvpById = async (req, res) => {
 
 // Login (or create a new RSVP)
 exports.login = async (req, res) => {
-  const { email, password, name, preferences } = req.body;
+  const { email,priority, password, name, preferences } = req.body;
 
   // Check if the user has provided email and password
   if (!email || !password) {
@@ -41,7 +41,7 @@ exports.login = async (req, res) => {
   try {
     // Find user by email (organizer)
     let user = await RSVP.findOne({ email });
-
+  
     // If the user is not found, ask them to provide RSVP details
     if (!user) {
       // If no user exists, register the user with provided details
@@ -56,6 +56,7 @@ exports.login = async (req, res) => {
       user = new RSVP({
         email,
         name,
+        priority,
         preferences,
         password,  // Store password as plaintext (not recommended for production)
       });
@@ -79,8 +80,8 @@ exports.login = async (req, res) => {
     // If login is successful, generate a JWT token and return user details
     const token = jwt.sign(
       { id: user._id, email: user.email },
-      process.env.JWT_SECRET,
-      { expiresIn: '1h' }
+      "MynameisPuvith",
+      
     );
 
     // Set the JWT token in a cookie
@@ -103,7 +104,7 @@ exports.login = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: 'Server error.',
+      message: "server error",
     });
   }
 };
@@ -131,7 +132,7 @@ exports.updateRsvp = async (req, res) => {
       return res.status(401).json({ success: false, message: 'Unauthorized' });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, "MynameisPuvith");
 
     // Find the RSVP entry associated with the logged-in organizer
     const rsvp = await RSVP.findById(req.params.id);
@@ -163,35 +164,6 @@ exports.updateRsvp = async (req, res) => {
   }
 };
 
-
-// Delete RSVP
-exports.deleteRsvp = async (req, res) => {
-  try {
-    const token = req.headers.authorization?.split(' ')[1];
-    if (!token) {
-      return res.status(401).json({ success: false, message: 'Unauthorized' });
-    }
-
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-    // Find the RSVP entry associated with the logged-in organizer
-    const rsvp = await RSVP.findById(req.params.id);
-    if (!rsvp) {
-      return res.status(404).json({ success: false, message: 'RSVP not found' });
-    }
-
-    // Delete only if the logged-in organizer created it
-    if (rsvp.email !== decoded.email) {
-      return res.status(403).json({ success: false, message: 'Permission denied' });
-    }
-
-    await rsvp.remove();
-
-    res.status(200).json({ success: true, message: 'RSVP deleted successfully' });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-};
 
 
 // Delete any RSVP (only for organizers)
