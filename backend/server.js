@@ -10,7 +10,7 @@ app.use(express.json());
 
 // Database connection
 mongoose
-  .connect('mongodb+srv://mileStone:mileStone123@cluster0.pepk5.mongodb.net/milestone')
+  .connect('process.env.MONGO_URI')
   .then(() => console.log('MongoDB connected'))
   .catch((err) => console.error('MongoDB connection error:', err));
 
